@@ -15,7 +15,8 @@
   
 /////////////////SOME VARIABLES///////////////////
 
-char lnbits_server[40] = "lnbits.com";
+char lnbits_server[40] = "https://lnbits.com";
+int lnbits_port = 433;
 char invoice_key[500] = "";
 char lnbits_description[100] = "";
 char lnbits_amount[500] = "1000";
@@ -151,14 +152,21 @@ void qrdisplay_screen()
 //////////////////NODE CALLS///////////////////
 
 void getinvoice() {
-  WiFiClientSecure client;
-  client.setInsecure();
   const char* lnbitsserver = lnbits_server;
+  const char* lnbitsport = lnbits_port;
   const char* invoicekey = invoice_key;
   const char* lnbitsamount = lnbits_amount;
   const char* lnbitsdescription = lnbits_description;
+  const char* http_prefix = "http://"
+  WiFiClientSecure client;
+  bool ssl = true;
+  if (strncmp (lnbits_server, http_prefix, sizeof(http_prefix.length()) == 0)
+    ssl = false;
+  WiFiClient* client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
+  client->connect(host, port);
+  client.setInsecure();
 
-  if (!client.connect(lnbitsserver, 443)){
+  if (!client.connect(lnbitsserver, lnbits_port)){
     down = true;
     return;   
   }
@@ -201,11 +209,18 @@ void getinvoice() {
 
 
 void checkinvoice(){
-  WiFiClientSecure client;
-  client.setInsecure();
   const char* lnbitsserver = lnbits_server;
   const char* invoicekey = invoice_key;
-  if (!client.connect(lnbitsserver, 443)){
+  const char* http_prefix = "http://"
+  WiFiClientSecure client;
+  bool ssl = true;
+  if (strncmp (lnbits_server, http_prefix, sizeof(http_prefix.length()) == 0)
+    ssl = false;
+  WiFiClient* client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
+  client->connect(host, port);
+  client.setInsecure();
+
+  if (!client.connect(lnbitsserver, lnbits_port)){
     down = true;
     return;   
   }
@@ -271,6 +286,7 @@ void portal(){
   deserializeJson(json, spiffcontent);
   if(String(spiffcontent) != "placeholder"){
     strcpy(lnbits_server, json["lnbits_server"]);
+    lnbits_port = json["lnbits_port"];
     strcpy(lnbits_description, json["lnbits_description"]);
     strcpy(invoice_key, json["invoice_key"]);
     strcpy(lnbits_amount, json["lnbits_amount"]);
@@ -282,12 +298,14 @@ void portal(){
   wm.setSaveConfigCallback(saveConfigCallback);
   
   WiFiManagerParameter custom_lnbits_server("server", "LNbits server", lnbits_server, 40);
+  WiFiManagerParameter custom_lnbits_port("port", "LNbits port", lnbits_port, 10);
   WiFiManagerParameter custom_lnbits_description("description", "Memo", lnbits_description, 200);
   WiFiManagerParameter custom_invoice_key("invoice", "LNbits invoice key", invoice_key, 500);
   WiFiManagerParameter custom_lnbits_amount("amount", "Amount to charge (sats)", lnbits_amount, 10);
   WiFiManagerParameter custom_high_pin("high", "Pin to turn on", high_pin, 5);
   WiFiManagerParameter custom_time_pin("time", "Time for pin to turn on for (milisecs)", time_pin, 20);
   wm.addParameter(&custom_lnbits_server);
+  wm.addParameter(&custom_lnbits_port);
   wm.addParameter(&custom_lnbits_description);
   wm.addParameter(&custom_invoice_key);
   wm.addParameter(&custom_lnbits_amount);
@@ -303,6 +321,7 @@ void portal(){
   }
   Serial.println("connected :)");
   strcpy(lnbits_server, custom_lnbits_server.getValue());
+  lnbits_port = stoi(custom_lnbits_port.getValue());
   strcpy(lnbits_description, custom_lnbits_description.getValue());
   strcpy(invoice_key, custom_invoice_key.getValue());
   strcpy(lnbits_amount, custom_lnbits_amount.getValue());
@@ -312,6 +331,7 @@ void portal(){
     Serial.println("saving config");
     DynamicJsonDocument json(1024);
     json["lnbits_server"] = lnbits_server;
+    json["lnbits_port"] = lnbits_port;
     json["lnbits_description"]   = lnbits_description;
     json["invoice_key"]   = invoice_key;
     json["lnbits_amount"] = lnbits_amount;
