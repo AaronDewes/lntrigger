@@ -186,12 +186,11 @@ void getinvoice() {
   const char* invoicekey = invoice_key;
   const char* lnbitsamount = lnbits_amount;
   const char* lnbitsdescription = lnbits_description;
-  bool ssl = false;
-  if (StartsWith(lnbitsserver, "https://")) {
-    ssl = true;
-  }
+  bool ssl = StartsWith(lnbitsserver, "https://")
   WiFiClient* client;
   client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
+  if(ssl)
+    client->setInsecure();
 
   if (!client->connect(lnbitsserver, parseInt(lnbitsport))){
     down = true;
@@ -239,13 +238,11 @@ void checkinvoice(){
   const char* lnbitsserver = lnbits_server;
   const char* lnbitsport = lnbits_port;
   const char* invoicekey = invoice_key;
-  bool ssl = false;
-  if (StartsWith(lnbitsserver, "https://")) {
-    ssl = true;
-  }
+  bool ssl = StartsWith(lnbitsserver, "https://")
   WiFiClient* client;
   client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
-  client->setInsecure();
+  if(ssl)
+    client->setInsecure();
 
   if (!client->connect(lnbitsserver, parseInt(lnbitsport))){
     down = true;
