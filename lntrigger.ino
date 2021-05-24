@@ -39,6 +39,9 @@ String spiffing;
 
 void setup() {
   M5.begin();
+  // Start serial console
+  Serial.begin(9600);
+  delay(2000);
   logo_screen();
   delay(3000);
   lnbits_screen();
