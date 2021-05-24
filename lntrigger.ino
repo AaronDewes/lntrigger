@@ -186,7 +186,7 @@ void getinvoice() {
   const char* invoicekey = invoice_key;
   const char* lnbitsamount = lnbits_amount;
   const char* lnbitsdescription = lnbits_description;
-  bool ssl = StartsWith(lnbitsserver, "https://")
+  bool ssl = StartsWith(lnbitsserver, "https://");
   WiFiClient* client;
   client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
 
@@ -236,7 +236,7 @@ void checkinvoice(){
   const char* lnbitsserver = lnbits_server;
   const char* lnbitsport = lnbits_port;
   const char* invoicekey = invoice_key;
-  bool ssl = StartsWith(lnbitsserver, "https://")
+  bool ssl = StartsWith(lnbitsserver, "https://");
   WiFiClient* client;
   client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
 
