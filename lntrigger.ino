@@ -189,8 +189,6 @@ void getinvoice() {
   bool ssl = StartsWith(lnbitsserver, "https://")
   WiFiClient* client;
   client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
-  if(ssl)
-    client->setInsecure();
 
   if (!client->connect(lnbitsserver, parseInt(lnbitsport))){
     down = true;
@@ -241,8 +239,6 @@ void checkinvoice(){
   bool ssl = StartsWith(lnbitsserver, "https://")
   WiFiClient* client;
   client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
-  if(ssl)
-    client->setInsecure();
 
   if (!client->connect(lnbitsserver, parseInt(lnbitsport))){
     down = true;
