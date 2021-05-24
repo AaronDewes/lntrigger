@@ -83,15 +83,15 @@ void loop() {
   pinMode (atoi(high_pin), OUTPUT);
   digitalWrite(atoi(high_pin), LOW);
   if(String(invoice_key) == ""){
-    error_screen();
+    error_no_invoice_key_screen();
   }
   Serial.println(String(invoice_key));
   getinvoice();
 
   if(down){
-  error_screen();
-  getinvoice();
-  delay(5000);
+    error_no_connection_screen();
+    getinvoice();
+    delay(5000);
   }
   if(payReq != ""){
    qrdisplay_screen();
@@ -162,13 +162,22 @@ void complete_screen()
   M5.Lcd.println("COMPLETE");
 }
 
-void error_screen()
+void error_no_invoice_key_screen()
 { 
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setCursor(70, 80);
-  M5.Lcd.setTextSize(4);
+  M5.Lcd.setTextSize(2);
   M5.Lcd.setTextColor(TFT_WHITE);
-  M5.Lcd.println("ERROR");
+  M5.Lcd.println("NO INVOICE KEY");
+}
+
+void error_no_connection_screen()
+{ 
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setCursor(70, 80);
+  M5.Lcd.setTextSize(2);
+  M5.Lcd.setTextColor(TFT_WHITE);
+  M5.Lcd.println("CAN'T CONNECT TO LNBITS");
 }
 
 void qrdisplay_screen()
