@@ -157,16 +157,16 @@ void getinvoice() {
   const char* invoicekey = invoice_key;
   const char* lnbitsamount = lnbits_amount;
   const char* lnbitsdescription = lnbits_description;
-  const char* http_prefix = "http://"
+  const char* http_prefix = "http://";
   WiFiClientSecure client;
   bool ssl = true;
-  if (strncmp (lnbits_server, http_prefix, sizeof(http_prefix.length()) == 0)
+  if (strncmp(lnbitsserver, http_prefix, sizeof(http_prefix.length()) == 0)
     ssl = false;
   WiFiClient* client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
   client->connect(host, port);
   client.setInsecure();
 
-  if (!client.connect(lnbitsserver, stoi(lnbits_port))){
+  if (!client.connect(lnbitsserver, stoi(lnbitsport))){
     down = true;
     return;   
   }
@@ -210,17 +210,18 @@ void getinvoice() {
 
 void checkinvoice(){
   const char* lnbitsserver = lnbits_server;
+  const char* lnbitsport = lnbits_port;
   const char* invoicekey = invoice_key;
   const char* http_prefix = "http://"
   WiFiClientSecure client;
   bool ssl = true;
-  if (strncmp (lnbits_server, http_prefix, sizeof(http_prefix.length()) == 0)
+  if (strncmp (lnbitsserver, http_prefix, sizeof(http_prefix.length()) == 0)
     ssl = false;
   WiFiClient* client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
   client->connect(host, port);
   client.setInsecure();
 
-  if (!client.connect(lnbitsserver, stoi(lnbits_port))){
+  if (!client.connect(lnbitsserver, stoi(lnbitsport))){
     down = true;
     return;   
   }
