@@ -212,11 +212,11 @@ void checkinvoice(){
   const char* lnbitsserver = lnbits_server;
   const char* lnbitsport = lnbits_port;
   const char* invoicekey = invoice_key;
-  const char* http_prefix = "http://"
+  const char* https_prefix = "https://"
   WiFiClientSecure client;
-  bool ssl = true;
-  if (strncmp (lnbitsserver, http_prefix, sizeof(http_prefix.length()) == 0)
-    ssl = false;
+  bool ssl = false;
+  if (strncmp (lnbitsserver, https_prefix, sizeof(https_prefix.length()) == 0)
+    ssl = true;
   WiFiClient* client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
   client->connect(host, port);
   client.setInsecure();
