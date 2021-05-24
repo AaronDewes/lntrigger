@@ -16,7 +16,7 @@
 /////////////////SOME VARIABLES///////////////////
 
 char lnbits_server[40] = "https://lnbits.com";
-int lnbits_port = 433;
+char lnbits_port[10] = "443";
 char invoice_key[500] = "";
 char lnbits_description[100] = "";
 char lnbits_amount[500] = "1000";
@@ -166,7 +166,7 @@ void getinvoice() {
   client->connect(host, port);
   client.setInsecure();
 
-  if (!client.connect(lnbitsserver, lnbits_port)){
+  if (!client.connect(lnbitsserver, stoi(lnbits_port))){
     down = true;
     return;   
   }
@@ -220,7 +220,7 @@ void checkinvoice(){
   client->connect(host, port);
   client.setInsecure();
 
-  if (!client.connect(lnbitsserver, lnbits_port)){
+  if (!client.connect(lnbitsserver, stoi(lnbits_port))){
     down = true;
     return;   
   }
@@ -286,7 +286,7 @@ void portal(){
   deserializeJson(json, spiffcontent);
   if(String(spiffcontent) != "placeholder"){
     strcpy(lnbits_server, json["lnbits_server"]);
-    lnbits_port = json["lnbits_port"];
+    strcpy(lnbits_port, json["lnbits_port"]);
     strcpy(lnbits_description, json["lnbits_description"]);
     strcpy(invoice_key, json["invoice_key"]);
     strcpy(lnbits_amount, json["lnbits_amount"]);
@@ -321,7 +321,7 @@ void portal(){
   }
   Serial.println("connected :)");
   strcpy(lnbits_server, custom_lnbits_server.getValue());
-  lnbits_port = stoi(custom_lnbits_port.getValue());
+  strcpy(lnbits_port, custom_lnbits_port.getValue());
   strcpy(lnbits_description, custom_lnbits_description.getValue());
   strcpy(invoice_key, custom_invoice_key.getValue());
   strcpy(lnbits_amount, custom_lnbits_amount.getValue());
