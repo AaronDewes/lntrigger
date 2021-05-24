@@ -56,6 +56,27 @@ bool StartsWith(const char *a, const char *b)
    return 0;
 }
 
+int parseInt(const char* chars)
+{
+    int sum = 0;
+    int len = strlen(chars);
+    for (int x = 0; x < len; x++)
+    {
+        int n = chars[len - (x + 1)] - '0';
+        sum = sum + powInt(n, x);
+    }
+    return sum;
+}
+
+int powInt(int x, int y)
+{
+    for (int i = 0; i < y; i++)
+    {
+        x *= 10;
+    }
+    return x;
+}
+
 ///////////////////MAIN LOOP//////////////////////
 
 void loop() {
@@ -165,14 +186,14 @@ void getinvoice() {
   const char* invoicekey = invoice_key;
   const char* lnbitsamount = lnbits_amount;
   const char* lnbitsdescription = lnbits_description;
-  const char* https_prefix = "https://"
   bool ssl = false;
-  if (StartsWith(lnbitsserver, "https://") {
+  if (StartsWith(lnbitsserver, "https://")) {
     ssl = true;
   }
-  WiFiClient* client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
+  WiFiClient* client;
+  client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
 
-  if (!client->connect(lnbitsserver, stoi(lnbitsport))){
+  if (!client->connect(lnbitsserver, parseInt(lnbitsport))){
     down = true;
     return;   
   }
@@ -219,14 +240,14 @@ void checkinvoice(){
   const char* lnbitsport = lnbits_port;
   const char* invoicekey = invoice_key;
   bool ssl = false;
-  if (StartsWith(lnbitsserver, "https://") {
+  if (StartsWith(lnbitsserver, "https://")) {
     ssl = true;
   }
-  WiFiClient* client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
-  client->connect(host, port);
+  WiFiClient* client;
+  client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
   client->setInsecure();
 
-  if (!client->connect(lnbitsserver, stoi(lnbitsport))){
+  if (!client->connect(lnbitsserver, parseInt(lnbitsport))){
     down = true;
     return;   
   }
