@@ -48,6 +48,14 @@ void setup() {
   portal();
 }
 
+/////////////////HELPER FUNCTIONS////////////////
+
+bool StartsWith(const char *a, const char *b)
+{
+   if(strncmp(a, b, strlen(b)) == 0) return 1;
+   return 0;
+}
+
 ///////////////////MAIN LOOP//////////////////////
 
 void loop() {
@@ -157,23 +165,21 @@ void getinvoice() {
   const char* invoicekey = invoice_key;
   const char* lnbitsamount = lnbits_amount;
   const char* lnbitsdescription = lnbits_description;
-  const char* http_prefix = "http://";
-  WiFiClientSecure client;
-  bool ssl = true;
-  if (strncmp(lnbitsserver, http_prefix, sizeof(http_prefix.length()) == 0)
-    ssl = false;
+  const char* https_prefix = "https://"
+  bool ssl = false;
+  if (StartsWith(lnbitsserver, "https://") {
+    ssl = true;
+  }
   WiFiClient* client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
-  client->connect(host, port);
-  client.setInsecure();
 
-  if (!client.connect(lnbitsserver, stoi(lnbitsport))){
+  if (!client->connect(lnbitsserver, stoi(lnbitsport))){
     down = true;
     return;   
   }
 
   String topost = "{\"out\": false,\"amount\" : " + String(lnbitsamount) + ", \"memo\" :\""+ String(lnbitsdescription) + String(random(1,1000)) + "\"}";
   String url = "/api/v1/payments";
-  client.print(String("POST ") + url +" HTTP/1.1\r\n" +
+  client->print(String("POST ") + url +" HTTP/1.1\r\n" +
                 "Host: " + lnbitsserver + "\r\n" +
                 "User-Agent: ESP32\r\n" +
                 "X-Api-Key: "+ invoicekey +" \r\n" +
@@ -182,8 +188,8 @@ void getinvoice() {
                 "Content-Length: " + topost.length() + "\r\n" +
                 "\r\n" + 
                 topost + "\n");
-  while (client.connected()) {
-    String line = client.readStringUntil('\n');
+  while (client->connected()) {
+    String line = client->readStringUntil('\n');
     if (line == "\r") {
       break;
     }
@@ -192,7 +198,7 @@ void getinvoice() {
     }
   }
   
-  String line = client.readString();
+  String line = client->readString();
 
   StaticJsonDocument<1000> doc;
   DeserializationError error = deserializeJson(doc, line);
@@ -212,29 +218,28 @@ void checkinvoice(){
   const char* lnbitsserver = lnbits_server;
   const char* lnbitsport = lnbits_port;
   const char* invoicekey = invoice_key;
-  const char* https_prefix = "https://"
-  WiFiClientSecure client;
   bool ssl = false;
-  if (strncmp (lnbitsserver, https_prefix, sizeof(https_prefix.length()) == 0)
+  if (StartsWith(lnbitsserver, "https://") {
     ssl = true;
+  }
   WiFiClient* client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
   client->connect(host, port);
-  client.setInsecure();
+  client->setInsecure();
 
-  if (!client.connect(lnbitsserver, stoi(lnbitsport))){
+  if (!client->connect(lnbitsserver, stoi(lnbitsport))){
     down = true;
     return;   
   }
 
   String url = "/api/v1/payments/";
-  client.print(String("GET ") + url + dataId +" HTTP/1.1\r\n" +
+  client->print(String("GET ") + url + dataId +" HTTP/1.1\r\n" +
                 "Host: " + lnbitsserver + "\r\n" +
                 "User-Agent: ESP32\r\n" +
                 "X-Api-Key:"+ invoicekey +"\r\n" +
                 "Content-Type: application/json\r\n" +
                 "Connection: close\r\n\r\n");
-   while (client.connected()) {
-   String line = client.readStringUntil('\n');
+   while (client->connected()) {
+   String line = client->readStringUntil('\n');
     if (line == "\r") {
       break;
     }
@@ -242,7 +247,7 @@ void checkinvoice(){
       break;
     }
   }
-  String line = client.readString();
+  String line = client->readString();
   Serial.println(line);
   StaticJsonDocument<200> doc;
   DeserializationError error = deserializeJson(doc, line);
