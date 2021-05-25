@@ -1,6 +1,6 @@
 
 
-//////////////LOAD LIBRARIES////////////////
+/*               LOAD LIBRARIES               */
 
 #include <M5Stack.h>
 #include "FS.h"
@@ -9,11 +9,11 @@
 #include <WiFiClientSecure.h>
 #include "SPIFFS.h"
 
-/////////////////SOME DEFINES///////////////////
+/*               SOME DEFINES                 */
 
 #define LED_PIN 25
   
-/////////////////SOME VARIABLES///////////////////
+/*               SOME VARIABLES               */
 
 char lnbits_server[40] = "lnbits.com";
 char invoice_key[500] = "";
@@ -34,7 +34,7 @@ const char* spiffcontent = "";
 String spiffing; 
 
 
-/////////////////////SETUP////////////////////////
+/*                   SETUP                     */
 
 void setup() {
   M5.begin();
@@ -42,12 +42,12 @@ void setup() {
   delay(3000);
   lnbits_screen();
 
-// START PORTAL 
+   START PORTAL 
 
   portal();
 }
 
-///////////////////MAIN LOOP//////////////////////
+/*                 MAIN LOOP                   */
 
 void loop() {
   pinMode (atoi(high_pin), OUTPUT);
@@ -84,7 +84,7 @@ void loop() {
 }
 
 
-//////////////////DISPLAY///////////////////
+/*               DISPLAY                 */
 
 void logo_screen()
 { 
@@ -148,7 +148,7 @@ void qrdisplay_screen()
   delay(100);
 }
 
-//////////////////NODE CALLS///////////////////
+/*               NODE CALLS                 */
 
 void getinvoice() {
   WiFiClientSecure client;
@@ -248,7 +248,7 @@ void portal(){
     delay(200);
    }
 
-//CHECK IF RESET IS TRIGGERED/WIPE DATA
+  // Check if a reset was triggered, wipe data if it was
   for (int i = 0; i <= 100; i++) {
     if (M5.BtnA.wasPressed()){
     portal_screen();
@@ -262,7 +262,7 @@ void portal(){
     M5.update();
   }
 
-//MOUNT FS AND READ CONFIG.JSON
+  // Mount the file system and read config.txt
   File file = SPIFFS.open("/config.txt");
   
   spiffing = file.readStringUntil('\n');
@@ -278,7 +278,7 @@ void portal(){
     strcpy(time_pin, json["time_pin"]);
   }
 
-//ADD PARAMS TO WIFIMANAGER
+  // ADD PARAMS TO WIFIMANAGER
   wm.setSaveConfigCallback(saveConfigCallback);
   
   WiFiManagerParameter custom_lnbits_server("server", "LNbits server", lnbits_server, 40);
@@ -294,14 +294,14 @@ void portal(){
   wm.addParameter(&custom_high_pin);
   wm.addParameter(&custom_time_pin);
 
-//IF RESET WAS TRIGGERED, RUN PORTAL AND WRITE FILES
+  IF RESET WAS TRIGGERED, RUN PORTAL AND WRITE FILES
   if (!wm.autoConnect("⚡lntrigger⚡", "password1")) {
-    Serial.println("failed to connect and hit timeout");
+    Serial.println("Failed to connect and hit timeout.");
     delay(3000);
     ESP.restart();
     delay(5000);
   }
-  Serial.println("connected :)");
+  Serial.println("Connected successfully.");
   strcpy(lnbits_server, custom_lnbits_server.getValue());
   strcpy(lnbits_description, custom_lnbits_description.getValue());
   strcpy(invoice_key, custom_invoice_key.getValue());
@@ -320,7 +320,7 @@ void portal(){
 
     File configFile = SPIFFS.open("/config.txt", "w");
     if (!configFile) {
-      Serial.println("failed to open config file for writing");
+      Serial.println("Failed to open config file for writing.");
       }
       serializeJsonPretty(json, Serial);
       serializeJson(json, configFile);
