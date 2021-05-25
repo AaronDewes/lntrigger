@@ -263,7 +263,18 @@ void checkinvoice()
   const char *invoicekey = invoice_key;
   bool ssl = StartsWith(lnbitsserver, "https://");
   WiFiClient *client;
-  client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
+  WiFiClient *httpClient;
+  WiFiClientSecure *httpsClient;
+  httpClient = new WiFiClient();
+  httpsClient = new WiFiClientSecure();
+  httpsClient->setInsecure();
+  if(ssl) {
+    delete httpClient;
+    client = httpsClient;
+  } else {
+    delete httpsClient;
+    client = httpClient;
+  }
 
   if (!client->connect(lnbitsserver, atoi(lnbitsport)))
   {
