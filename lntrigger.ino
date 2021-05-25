@@ -15,7 +15,8 @@
   
 /*               SOME VARIABLES               */
 
-char lnbits_server[40] = "lnbits.com";
+char lnbits_server[40] = "https://lnbits.com";
+char lnbits_port[10] = "443";
 char invoice_key[500] = "";
 char lnbits_description[100] = "";
 char lnbits_amount[500] = "1000";
@@ -47,21 +48,50 @@ void setup() {
   portal();
 }
 
+/*             HELPER FUNCTIONS                */
+
+bool StartsWith(const char *a, const char *b)
+{
+   if(strncmp(a, b, strlen(b)) == 0) return 1;
+   return 0;
+}
+
+int parseInt(const char* chars)
+{
+    int sum = 0;
+    int len = strlen(chars);
+    for (int x = 0; x < len; x++)
+    {
+        int n = chars[len - (x + 1)] - '0';
+        sum = sum + powInt(n, x);
+    }
+    return sum;
+}
+
+int powInt(int x, int y)
+{
+    for (int i = 0; i < y; i++)
+    {
+        x *= 10;
+    }
+    return x;
+}
+
 /*                 MAIN LOOP                   */
 
 void loop() {
   pinMode (atoi(high_pin), OUTPUT);
   digitalWrite(atoi(high_pin), LOW);
   if(String(invoice_key) == ""){
-    error_screen();
+    error_no_invoice_key_screen();
   }
   Serial.println(String(invoice_key));
   getinvoice();
 
   if(down){
-  error_screen();
-  getinvoice();
-  delay(5000);
+    error_no_connection_screen();
+    getinvoice();
+    delay(5000);
   }
   if(payReq != ""){
    qrdisplay_screen();
@@ -132,13 +162,22 @@ void complete_screen()
   M5.Lcd.println("COMPLETE");
 }
 
-void error_screen()
+void error_no_invoice_key_screen()
 { 
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setCursor(70, 80);
-  M5.Lcd.setTextSize(4);
+  M5.Lcd.setTextSize(2);
   M5.Lcd.setTextColor(TFT_WHITE);
-  M5.Lcd.println("ERROR");
+  M5.Lcd.println("NO INVOICE KEY");
+}
+
+void error_no_connection_screen()
+{ 
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setCursor(70, 80);
+  M5.Lcd.setTextSize(2);
+  M5.Lcd.setTextColor(TFT_WHITE);
+  M5.Lcd.println("CAN'T CONNECT TO LNBITS");
 }
 
 void qrdisplay_screen()
@@ -151,21 +190,23 @@ void qrdisplay_screen()
 /*               NODE CALLS                 */
 
 void getinvoice() {
-  WiFiClientSecure client;
-  client.setInsecure();
   const char* lnbitsserver = lnbits_server;
+  const char* lnbitsport = lnbits_port;
   const char* invoicekey = invoice_key;
   const char* lnbitsamount = lnbits_amount;
   const char* lnbitsdescription = lnbits_description;
+  bool ssl = StartsWith(lnbitsserver, "https://");
+  WiFiClient* client;
+  client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
 
-  if (!client.connect(lnbitsserver, 443)){
+  if (!client->connect(lnbitsserver, parseInt(lnbitsport))){
     down = true;
     return;   
   }
 
   String topost = "{\"out\": false,\"amount\" : " + String(lnbitsamount) + ", \"memo\" :\""+ String(lnbitsdescription) + String(random(1,1000)) + "\"}";
   String url = "/api/v1/payments";
-  client.print(String("POST ") + url +" HTTP/1.1\r\n" +
+  client->print(String("POST ") + url +" HTTP/1.1\r\n" +
                 "Host: " + lnbitsserver + "\r\n" +
                 "User-Agent: ESP32\r\n" +
                 "X-Api-Key: "+ invoicekey +" \r\n" +
@@ -174,8 +215,8 @@ void getinvoice() {
                 "Content-Length: " + topost.length() + "\r\n" +
                 "\r\n" + 
                 topost + "\n");
-  while (client.connected()) {
-    String line = client.readStringUntil('\n');
+  while (client->connected()) {
+    String line = client->readStringUntil('\n');
     if (line == "\r") {
       break;
     }
@@ -184,7 +225,7 @@ void getinvoice() {
     }
   }
   
-  String line = client.readString();
+  String line = client->readString();
 
   StaticJsonDocument<1000> doc;
   DeserializationError error = deserializeJson(doc, line);
@@ -201,24 +242,27 @@ void getinvoice() {
 
 
 void checkinvoice(){
-  WiFiClientSecure client;
-  client.setInsecure();
   const char* lnbitsserver = lnbits_server;
+  const char* lnbitsport = lnbits_port;
   const char* invoicekey = invoice_key;
-  if (!client.connect(lnbitsserver, 443)){
+  bool ssl = StartsWith(lnbitsserver, "https://");
+  WiFiClient* client;
+  client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
+
+  if (!client->connect(lnbitsserver, parseInt(lnbitsport))){
     down = true;
     return;   
   }
 
   String url = "/api/v1/payments/";
-  client.print(String("GET ") + url + dataId +" HTTP/1.1\r\n" +
+  client->print(String("GET ") + url + dataId +" HTTP/1.1\r\n" +
                 "Host: " + lnbitsserver + "\r\n" +
                 "User-Agent: ESP32\r\n" +
                 "X-Api-Key:"+ invoicekey +"\r\n" +
                 "Content-Type: application/json\r\n" +
                 "Connection: close\r\n\r\n");
-   while (client.connected()) {
-   String line = client.readStringUntil('\n');
+   while (client->connected()) {
+   String line = client->readStringUntil('\n');
     if (line == "\r") {
       break;
     }
@@ -226,7 +270,7 @@ void checkinvoice(){
       break;
     }
   }
-  String line = client.readString();
+  String line = client->readString();
   Serial.println(line);
   StaticJsonDocument<200> doc;
   DeserializationError error = deserializeJson(doc, line);
@@ -271,6 +315,7 @@ void portal(){
   deserializeJson(json, spiffcontent);
   if(String(spiffcontent) != "placeholder"){
     strcpy(lnbits_server, json["lnbits_server"]);
+    strcpy(lnbits_port, json["lnbits_port"]);
     strcpy(lnbits_description, json["lnbits_description"]);
     strcpy(invoice_key, json["invoice_key"]);
     strcpy(lnbits_amount, json["lnbits_amount"]);
@@ -282,12 +327,14 @@ void portal(){
   wm.setSaveConfigCallback(saveConfigCallback);
   
   WiFiManagerParameter custom_lnbits_server("server", "LNbits server", lnbits_server, 40);
+  WiFiManagerParameter custom_lnbits_port("port", "LNbits port", lnbits_port, 10);
   WiFiManagerParameter custom_lnbits_description("description", "Memo", lnbits_description, 200);
   WiFiManagerParameter custom_invoice_key("invoice", "LNbits invoice key", invoice_key, 500);
   WiFiManagerParameter custom_lnbits_amount("amount", "Amount to charge (sats)", lnbits_amount, 10);
   WiFiManagerParameter custom_high_pin("high", "Pin to turn on", high_pin, 5);
   WiFiManagerParameter custom_time_pin("time", "Time for pin to turn on for (milisecs)", time_pin, 20);
   wm.addParameter(&custom_lnbits_server);
+  wm.addParameter(&custom_lnbits_port);
   wm.addParameter(&custom_lnbits_description);
   wm.addParameter(&custom_invoice_key);
   wm.addParameter(&custom_lnbits_amount);
@@ -303,6 +350,7 @@ void portal(){
   }
   Serial.println("Connected successfully.");
   strcpy(lnbits_server, custom_lnbits_server.getValue());
+  strcpy(lnbits_port, custom_lnbits_port.getValue());
   strcpy(lnbits_description, custom_lnbits_description.getValue());
   strcpy(invoice_key, custom_invoice_key.getValue());
   strcpy(lnbits_amount, custom_lnbits_amount.getValue());
@@ -312,6 +360,7 @@ void portal(){
     Serial.println("saving config");
     DynamicJsonDocument json(1024);
     json["lnbits_server"] = lnbits_server;
+    json["lnbits_port"] = lnbits_port;
     json["lnbits_description"]   = lnbits_description;
     json["invoice_key"]   = invoice_key;
     json["lnbits_amount"] = lnbits_amount;
