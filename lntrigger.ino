@@ -347,7 +347,7 @@ void portal()
   spiffcontent = spiffing.c_str();
   DynamicJsonDocument json(1024);
   deserializeJson(json, spiffcontent);
-  if (!json["lnbits_server"])
+  if (String(spiffcontent) != "{}")
   {
     strcpy(lnbits_server, json["lnbits_server"]);
     strcpy(lnbits_port, json["lnbits_port"]);
