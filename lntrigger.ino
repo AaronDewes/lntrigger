@@ -217,6 +217,7 @@ void getinvoice()
   while (client->connected())
   {
     String line = client->readStringUntil('\n');
+    Serial.println(line);
     if (line == "\r")
     {
       break;
@@ -228,6 +229,7 @@ void getinvoice()
   }
 
   String line = client->readString();
+  Serial.println(line);
 
   StaticJsonDocument<1000> doc;
   DeserializationError error = deserializeJson(doc, line);
