@@ -55,11 +55,6 @@ bool StartsWith(const char *a, const char *b)
   return 0;
 }
 
-void stop()
-{
-  while(1);
-}
-
 /*                 MAIN LOOP                   */
 
 void loop()
@@ -165,15 +160,6 @@ void error_no_connection_screen()
   M5.Lcd.setTextSize(2);
   M5.Lcd.setTextColor(TFT_WHITE);
   M5.Lcd.println("CAN'T CONNECT TO LNBITS");
-}
-
-void fs_error_screen()
-{
-  M5.Lcd.fillScreen(BLACK);
-  M5.Lcd.setCursor(70, 80);
-  M5.Lcd.setTextSize(2);
-  M5.Lcd.setTextColor(TFT_WHITE);
-  M5.Lcd.println("FILESYSTEM ERROR");
 }
 
 void qrdisplay_screen()
@@ -293,35 +279,15 @@ void checkinvoice()
   paid = charPaid;
 }
 
-bool InitalizeFileSystem() {
-  bool initok = false;
-  initok = SPIFFS.begin();
-  if (!(initok))
-  {
-    Serial.println("Formatting SPI filesystem");
-    SPIFFS.format();
-    initok = SPIFFS.begin();
-  }
-  if (!(initok))
-  {
-    SPIFFS.format();
-    initok = SPIFFS.begin();
-  }
-  if (initok) { Serial.println("Filesystem mounted"); } else { Serial.println("failed to mount FS"); }
-  return initok;
-}
-
 void portal()
 {
 
   WiFiManager wm;
   Serial.println("mounting FS...");
-  if (!InitalizeFileSystem())
+  while (!SPIFFS.begin(true))
   {
     Serial.println("failed to mount FS");
-    fs_error_screen();
-    delay(2000);
-    stop();
+    delay(200);
   }
 
   // Check if a reset was triggered, wipe data if it was
