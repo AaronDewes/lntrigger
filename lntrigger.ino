@@ -191,12 +191,13 @@ void getinvoice()
   String topost = '{"out": false,"amount": ' + String(lnbitsamount) + ', "memo" : "' + String(lnbitsdescription) + String(random(1, 1000)) + '"}';
   String url = "/api/v1/payments";
   client->println(String("POST ") + url + " HTTP/1.1");
-  client->println("Host: " + lnbitsserver);
+  client->println(String("Host: ") + lnbitsserver);
   client->println("User-Agent: LNTrigger");
-  client->println("X-Api-Key: " + invoicekey);
+  client->println(String("X-Api-Key: ") + invoicekey);
   client->println("Content-Type: application/json");
   client->println("Connection: close");
-  client->println("Content-Length: " + topost.length());
+  client->println(String("Content-Length: ") + topost.length());
+  client->println();
   client->println();
   client->println(topost);
   client->println();
@@ -238,19 +239,20 @@ void checkinvoice()
   WiFiClient *client;
   client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
 
-  if (!client->connect(lnbitsserver, parseInt(lnbitsport)))
+  if (!client->connect(lnbitsserver, atoi(lnbitsport)))
   {
     down = true;
     return;
   }
 
   String url = "/api/v1/payments/";
-  client->print(String("GET ") + url + dataId + " HTTP/1.1\r\n" +
-                "Host: " + lnbitsserver + "\r\n" +
-                "User-Agent: ESP32\r\n" +
-                "X-Api-Key:" + invoicekey + "\r\n" +
-                "Content-Type: application/json\r\n" +
-                "Connection: close\r\n\r\n");
+  client->println(String("GET ") + url + dataId + " HTTP/1.1");
+  client->println(String("Host: ") + lnbitsserver);
+  client->println("User-Agent: LNTrigger");
+  client->println(String("X-Api-Key: ") + invoicekey);
+  client->println("Connection: close");
+  client->println();
+  client->println();
   while (client->connected())
   {
     String line = client->readStringUntil('\n');
