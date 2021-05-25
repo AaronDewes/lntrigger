@@ -13,6 +13,9 @@
 
 #define LED_PIN 25
 
+// Enable debug logs to serial console
+#define DEBUG_MODE
+
 /*               SOME VARIABLES               */
 
 char lnbits_server[40] = "https://lnbits.com";
@@ -61,9 +64,16 @@ void stop()
     ;
 }
 
+void log(const char *message)
+{
+#ifdef DEBUG_MODE
+  Serial.printLn(message);
+#endif
+}
+
 StaticJsonDocument<1000> makeApiRequest(const char *method, const char *endpoint, const char *data)
 {
-  Serial.println(String("Making HTTP ") + method + " request to the endpoint " + endpoint);
+  log(String("Making HTTP ") + method + " request to the endpoint " + endpoint);
   const char *lnbitsserver = lnbits_server;
   const char *lnbitsport = lnbits_port;
   const char *invoicekey = invoice_key;
@@ -77,22 +87,22 @@ StaticJsonDocument<1000> makeApiRequest(const char *method, const char *endpoint
                                  "\r\n" +
                                  data + "\n");
 
-  Serial.println("Request");
-  Serial.println("-------");
-  Serial.println("");
-  Serial.println(request);
+  log("Request");
+  log("-------");
+  log("");
+  log(request);
   bool ssl = StartsWith(lnbitsserver, "https://");
   WiFiClient client;
   WiFiClientSecure httpsClient;
   httpsClient.setInsecure();
   if (ssl)
   {
-    Serial.println("Trying to use HTTPS");
+    log("Trying to use HTTPS");
     client = httpsClient;
   }
   else
   {
-    Serial.println("Trying to use HTTP");
+    log("Trying to use HTTP");
     delete httpsClient;
   }
 
@@ -106,7 +116,7 @@ StaticJsonDocument<1000> makeApiRequest(const char *method, const char *endpoint
   while (client.connected())
   {
     String line = client.readStringUntil('\n');
-    Serial.println(line);
+    log(line);
     if (line == "\r")
     {
       break;
@@ -118,14 +128,16 @@ StaticJsonDocument<1000> makeApiRequest(const char *method, const char *endpoint
   }
 
   String line = client.readString();
-  Serial.println(line);
+  log(line);
 
   StaticJsonDocument<1000> doc;
   DeserializationError error = deserializeJson(doc, line);
   if (error)
   {
+#ifdef DEBUG_MODE
     Serial.print(F("deserializeJson() failed: "));
-    Serial.println(error.f_str());
+#endif
+    log(error.f_str());
     return false;
   }
   return doc;
@@ -140,7 +152,7 @@ void loop()
   {
     error_no_invoice_key_screen();
   }
-  Serial.println(String(invoice_key));
+  log(String(invoice_key));
   getinvoice();
 
   if (down)
@@ -288,7 +300,7 @@ bool InitalizeFileSystem()
   initok = SPIFFS.begin();
   if (!(initok))
   {
-    Serial.println("Formatting SPI filesystem");
+    log("Formatting SPI filesystem");
     SPIFFS.format();
     initok = SPIFFS.begin();
   }
@@ -299,11 +311,11 @@ bool InitalizeFileSystem()
   }
   if (initok)
   {
-    Serial.println("Filesystem mounted");
+    log("Filesystem mounted");
   }
   else
   {
-    Serial.println("failed to mount FS");
+    log("failed to mount FS");
   }
   return initok;
 }
@@ -312,10 +324,10 @@ void portal()
 {
 
   WiFiManager wm;
-  Serial.println("mounting FS...");
+  log("mounting FS...");
   if (!InitalizeFileSystem())
   {
-    Serial.println("failed to mount FS");
+    log("failed to mount FS");
     fs_error_screen();
     delay(2000);
     stop();
@@ -376,12 +388,12 @@ void portal()
   // If a reset was triggered, run the portal and write files
   if (!wm.autoConnect("⚡lntrigger⚡", "password1"))
   {
-    Serial.println("Failed to connect and hit timeout.");
+    log("Failed to connect and hit timeout.");
     delay(3000);
     ESP.restart();
     delay(5000);
   }
-  Serial.println("Connected successfully.");
+  log("Connected successfully.");
   strcpy(lnbits_server, custom_lnbits_server.getValue());
   strcpy(lnbits_port, custom_lnbits_port.getValue());
   strcpy(lnbits_description, custom_lnbits_description.getValue());
@@ -391,7 +403,7 @@ void portal()
   strcpy(time_pin, custom_time_pin.getValue());
   if (shouldSaveConfig)
   {
-    Serial.println("saving config");
+    log("saving config");
     DynamicJsonDocument json(1024);
     json["lnbits_server"] = lnbits_server;
     json["lnbits_port"] = lnbits_port;
@@ -404,7 +416,7 @@ void portal()
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile)
     {
-      Serial.println("Failed to open config file for writing.");
+      log("Failed to open config file for writing.");
     }
     serializeJsonPretty(json, Serial);
     serializeJson(json, configFile);
@@ -412,15 +424,15 @@ void portal()
     shouldSaveConfig = false;
   }
 
-  Serial.println("Local IP");
-  Serial.println(WiFi.localIP());
-  Serial.println(WiFi.gatewayIP());
-  Serial.println(WiFi.subnetMask());
+  log("Local IP");
+  log(WiFi.localIP());
+  log(WiFi.gatewayIP());
+  log(WiFi.subnetMask());
 }
 
 void saveConfigCallback()
 {
   processing_screen();
-  Serial.println("Should save config.");
+  log("Should save config.");
   shouldSaveConfig = true;
 }
