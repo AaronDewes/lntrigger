@@ -71,7 +71,7 @@ void log(const char *message)
 #endif
 }
 
-StaticJsonDocument<1000> makeApiRequest(const char *method, const char *endpoint, const char *data)
+bool makeApiRequest(const char *method, const char *endpoint, const char *data, StaticJsonDocument doc)
 {
   log(String("Making HTTP ") + method + " request to the endpoint " + endpoint);
   const char *lnbitsserver = lnbits_server;
@@ -131,7 +131,6 @@ StaticJsonDocument<1000> makeApiRequest(const char *method, const char *endpoint
   String line = client.readString();
   log(line);
 
-  StaticJsonDocument<1000> doc;
   DeserializationError error = deserializeJson(doc, line);
   if (error)
   {
@@ -141,7 +140,7 @@ StaticJsonDocument<1000> makeApiRequest(const char *method, const char *endpoint
     log(error.f_str());
     return false;
   }
-  return doc;
+  return true;
 }
 /*                 MAIN LOOP                   */
 
@@ -275,8 +274,8 @@ void getinvoice()
 
   String topost = "{\"out\": false,\"amount\" : " + String(lnbitsamount) + ", \"memo\" :\"" + String(lnbitsdescription) + String(random(1, 1000)) + "\"}";
 
-  StaticJsonDocument<1000> doc = makeApiRequest("POST", url, topost);
-  if (!doc)
+  StaticJsonDocument<1000> doc;
+  if (!makeApiRequest("POST", url, topost, doc))
     return;
   const char *payment_hash = doc["checking_id"];
   const char *payment_request = doc["payment_request"];
@@ -288,8 +287,8 @@ void checkinvoice()
 {
   const char *invoicekey = invoice_key;
   String url = String("/api/v1/payments/") + dataId;
-  StaticJsonDocument<1000> doc = makeApiRequest("GET", url, "");
-  if (!doc)
+  StaticJsonDocument<200> doc;
+  if (!makeApiRequest("GET", url, "", doc))
     return;
   bool charPaid = doc["paid"];
   paid = charPaid;
