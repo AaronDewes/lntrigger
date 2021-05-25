@@ -73,7 +73,9 @@ void log(const char *message)
 
 bool makeApiRequest(const char *method, const char *endpoint, const char *data, StaticJsonDocument doc)
 {
-  log(String("Making HTTP ") + method + " request to the endpoint " + endpoint);
+  log("Making HTTP request");
+  log(method);
+  log(endpoint);
   const char *lnbitsserver = lnbits_server;
   const char *lnbitsport = lnbits_port;
   const char *invoicekey = invoice_key;
@@ -273,9 +275,10 @@ void getinvoice()
   const char *lnbitsdescription = lnbits_description;
 
   String topost = "{\"out\": false,\"amount\" : " + String(lnbitsamount) + ", \"memo\" :\"" + String(lnbitsdescription) + String(random(1, 1000)) + "\"}";
+  String url = "/api/v1/payments";
 
   StaticJsonDocument<1000> doc;
-  if (!makeApiRequest("POST", url, topost, doc))
+  if (!makeApiRequest("POST", url, topost, &doc))
     return;
   const char *payment_hash = doc["checking_id"];
   const char *payment_request = doc["payment_request"];
@@ -288,7 +291,7 @@ void checkinvoice()
   const char *invoicekey = invoice_key;
   String url = String("/api/v1/payments/") + dataId;
   StaticJsonDocument<200> doc;
-  if (!makeApiRequest("GET", url, "", doc))
+  if (!makeApiRequest("GET", url, "", &doc))
     return;
   bool charPaid = doc["paid"];
   paid = charPaid;
