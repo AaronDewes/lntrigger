@@ -91,6 +91,7 @@ StaticJsonDocument<1000> makeApiRequest(const char *method, const char *endpoint
   log("-------");
   log("");
   log(request);
+  log("");
   bool ssl = StartsWith(lnbitsserver, "https://");
   WiFiClient client;
   WiFiClientSecure httpsClient;
