@@ -196,7 +196,7 @@ void getinvoice()
   bool ssl = StartsWith(lnbitsserver, "https://");
   WiFiClient *client;
   WiFiClient *httpClient;
-  WiFiSecureClient *httpsClient;
+  WiFiClientSecure *httpsClient;
   httpClient = new WiFiClient();
   httpsClient = new WiFiClientSecure();
   httpsClient->setInsecure();
