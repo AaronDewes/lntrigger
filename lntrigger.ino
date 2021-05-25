@@ -42,9 +42,7 @@ void setup()
   logo_screen();
   delay(3000);
   lnbits_screen();
-
-  START PORTAL
-
+  // START PORTAL
   portal();
 }
 
@@ -55,27 +53,6 @@ bool StartsWith(const char *a, const char *b)
   if (strncmp(a, b, strlen(b)) == 0)
     return 1;
   return 0;
-}
-
-int parseInt(const char *chars)
-{
-  int sum = 0;
-  int len = strlen(chars);
-  for (int x = 0; x < len; x++)
-  {
-    int n = chars[len - (x + 1)] - '0';
-    sum = sum + powInt(n, x);
-  }
-  return sum;
-}
-
-int powInt(int x, int y)
-{
-  for (int i = 0; i < y; i++)
-  {
-    x *= 10;
-  }
-  return x;
 }
 
 /*                 MAIN LOOP                   */
@@ -205,23 +182,24 @@ void getinvoice()
   WiFiClient *client;
   client = (ssl) ? new WiFiClientSecure() : new WiFiClient();
 
-  if (!client->connect(lnbitsserver, parseInt(lnbitsport)))
+  if (!client->connect(lnbitsserver, atoi(lnbitsport)))
   {
     down = true;
     return;
   }
 
-  String topost = "{\"out\": false,\"amount\" : " + String(lnbitsamount) + ", \"memo\" :\"" + String(lnbitsdescription) + String(random(1, 1000)) + "\"}";
+  String topost = '{"out": false,"amount": ' + String(lnbitsamount) + ', "memo" : "' + String(lnbitsdescription) + String(random(1, 1000)) + '"}';
   String url = "/api/v1/payments";
-  client->print(String("POST ") + url + " HTTP/1.1\r\n" +
-                "Host: " + lnbitsserver + "\r\n" +
-                "User-Agent: ESP32\r\n" +
-                "X-Api-Key: " + invoicekey + " \r\n" +
-                "Content-Type: application/json\r\n" +
-                "Connection: close\r\n" +
-                "Content-Length: " + topost.length() + "\r\n" +
-                "\r\n" +
-                topost + "\n");
+  client->println(String("POST ") + url + " HTTP/1.1");
+  client->println("Host: " + lnbitsserver);
+  client->println("User-Agent: LNTrigger");
+  client->println("X-Api-Key: " + invoicekey);
+  client->println("Content-Type: application/json");
+  client->println("Connection: close");
+  client->println("Content-Length: " + topost.length());
+  client->println();
+  client->println(topost);
+  client->println();
   while (client->connected())
   {
     String line = client->readStringUntil('\n');
@@ -317,8 +295,8 @@ void portal()
     {
       portal_screen();
       delay(1000);
-      File file = SPIFFS.open("/config.txt", FILE_WRITE);
-      file.print("placeholder");
+      File file = SPIFFS.open("/config.json", FILE_WRITE);
+      file.print("{}");
       wm.resetSettings();
       i = 100;
     }
@@ -326,14 +304,14 @@ void portal()
     M5.update();
   }
 
-  // Mount the file system and read config.txt
-  File file = SPIFFS.open("/config.txt");
+  // Mount the file system and read config.json
+  File file = SPIFFS.open("/config.json");
 
   spiffing = file.readStringUntil('\n');
   spiffcontent = spiffing.c_str();
   DynamicJsonDocument json(1024);
   deserializeJson(json, spiffcontent);
-  if (String(spiffcontent) != "placeholder")
+  if (!json["lnbits_server"])
   {
     strcpy(lnbits_server, json["lnbits_server"]);
     strcpy(lnbits_port, json["lnbits_port"]);
@@ -353,7 +331,7 @@ void portal()
   WiFiManagerParameter custom_invoice_key("invoice", "LNbits invoice key", invoice_key, 500);
   WiFiManagerParameter custom_lnbits_amount("amount", "Amount to charge (sats)", lnbits_amount, 10);
   WiFiManagerParameter custom_high_pin("high", "Pin to turn on", high_pin, 5);
-  WiFiManagerParameter custom_time_pin("time", "Time for pin to turn on for (milisecs)", time_pin, 20);
+  WiFiManagerParameter custom_time_pin("time", "Time for pin to turn on for (millisecs)", time_pin, 20);
   wm.addParameter(&custom_lnbits_server);
   wm.addParameter(&custom_lnbits_port);
   wm.addParameter(&custom_lnbits_description);
@@ -390,7 +368,7 @@ void portal()
     json["high_pin"] = high_pin;
     json["time_pin"] = time_pin;
 
-    File configFile = SPIFFS.open("/config.txt", "w");
+    File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile)
     {
       Serial.println("Failed to open config file for writing.");
@@ -410,6 +388,6 @@ void portal()
 void saveConfigCallback()
 {
   processing_screen();
-  Serial.println("Should save config");
+  Serial.println("Should save config.");
   shouldSaveConfig = true;
 }
